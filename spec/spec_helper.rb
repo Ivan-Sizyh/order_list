@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_record'
+require 'db-query-matchers'
 require 'ordered_list'
 
 require_relative 'support/database'

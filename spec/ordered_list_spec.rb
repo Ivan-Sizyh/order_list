@@ -50,6 +50,7 @@ RSpec.describe OrderedList do
     let(:other_company) { Company.create! }
     let!(:items) { Array.new(3) { Item.create!(company:) } }
     let(:other_items) { Array.new(2) { Item.create!(company: other_company) } }
+    let(:list) { Item.where(company:).order(:position) }
 
     it 'puts new records to the end of the list' do
       expect(items.map(&:position)).to eq([1, 2, 3])
@@ -57,6 +58,37 @@ RSpec.describe OrderedList do
 
     it 'numbers the lists of different companies independently' do
       expect(other_items.map(&:position)).to eq([1, 2])
+    end
+
+    it 'runs a single UPDATE when no record follows the new one' do
+      expect { Item.create!(company:) }.to make_database_queries(matching: /\AUPDATE/, count: 1)
+    end
+
+    context 'with an explicit position' do
+      let!(:inserted) { Item.create!(company:, position: 2) }
+
+      it 'puts the record there and shifts the following ones' do
+        expect(list).to eq([items[0], inserted, items[1], items[2]])
+        expect(list.pluck(:position)).to eq([1, 2, 3, 4])
+      end
+    end
+
+    context 'with a position beyond the end of the list' do
+      let!(:inserted) { Item.create!(company:, position: 100) }
+
+      it 'puts the record to the end' do
+        expect(list).to eq([*items, inserted])
+        expect(list.pluck(:position)).to eq([1, 2, 3, 4])
+      end
+    end
+
+    context 'with a position below 1' do
+      let!(:inserted) { Item.create!(company:, position: 0) }
+
+      it 'puts the record to the beginning' do
+        expect(list).to eq([inserted, *items])
+        expect(list.pluck(:position)).to eq([1, 2, 3, 4])
+      end
     end
   end
 end
