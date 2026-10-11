@@ -2,36 +2,46 @@
 
 RSpec.describe OrderedList do
   it 'makes ordered_list available in ActiveRecord models' do
-    model = Class.new(ActiveRecord::Base)
-
-    expect(model).to respond_to(:ordered_list)
+    expect(ActiveRecord::Base).to respond_to(:ordered_list)
   end
 
   describe '.ordered_list' do
-    it 'remembers the foreign key of a belongs_to scope' do
-      model = Class.new(ActiveRecord::Base) do
-        belongs_to :company
-        ordered_list on: :company
+    context 'when scoped by a belongs_to association' do
+      let(:model) do
+        Class.new(ActiveRecord::Base) do
+          belongs_to :company
+          ordered_list on: :company
+        end
       end
 
-      expect(model.ordered_list_scope_columns).to eq(['company_id'])
+      it 'remembers its foreign key' do
+        expect(model.ordered_list_scope_columns).to eq(['company_id'])
+      end
     end
 
-    it 'remembers the name of a plain column scope' do
-      model = Class.new(ActiveRecord::Base) do
-        ordered_list on: :active
+    context 'when scoped by a plain column' do
+      let(:model) do
+        Class.new(ActiveRecord::Base) do
+          ordered_list on: :active
+        end
       end
 
-      expect(model.ordered_list_scope_columns).to eq(['active'])
+      it 'remembers the column name' do
+        expect(model.ordered_list_scope_columns).to eq(['active'])
+      end
     end
 
-    it 'remembers every column of a scope given as an array' do
-      model = Class.new(ActiveRecord::Base) do
-        belongs_to :company
-        ordered_list on: %i(company active)
+    context 'when scoped by several columns' do
+      let(:model) do
+        Class.new(ActiveRecord::Base) do
+          belongs_to :company
+          ordered_list on: %i(company active)
+        end
       end
 
-      expect(model.ordered_list_scope_columns).to eq(%w(company_id active))
+      it 'remembers every column' do
+        expect(model.ordered_list_scope_columns).to eq(%w(company_id active))
+      end
     end
   end
 end
