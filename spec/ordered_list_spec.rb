@@ -44,4 +44,19 @@ RSpec.describe OrderedList do
       end
     end
   end
+
+  describe 'creating records' do
+    let(:company) { Company.create! }
+    let(:other_company) { Company.create! }
+    let!(:items) { Array.new(3) { Item.create!(company:) } }
+    let(:other_items) { Array.new(2) { Item.create!(company: other_company) } }
+
+    it 'puts new records to the end of the list' do
+      expect(items.map(&:position)).to eq([1, 2, 3])
+    end
+
+    it 'numbers the lists of different companies independently' do
+      expect(other_items.map(&:position)).to eq([1, 2])
+    end
+  end
 end
