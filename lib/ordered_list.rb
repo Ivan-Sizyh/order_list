@@ -11,6 +11,12 @@ module OrderedList
 
       reflection ? reflection.foreign_key : name.to_s
     end
+
+    before_create do
+      list = self.class.where(self.class.ordered_list_scope_columns.index_with { |column| self[column] })
+
+      self.position = list.maximum(:position).to_i + 1
+    end
   end
 end
 
